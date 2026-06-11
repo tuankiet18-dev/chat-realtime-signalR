@@ -1,0 +1,17 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/.git/
+**/.vs/
+**/.vscode/
+*.log
+.api.pid
+.fe.pid
+.chatapp-debug.pid
+.chatapp-out.log
+.chatapp-err.log
+.api-out.log
+.api-err.log
+.fe-out.log
+.fe-err.log

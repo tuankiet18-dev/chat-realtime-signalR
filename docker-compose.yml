@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: chatapp-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chatapp
+      POSTGRES_USER: chatapp
+      POSTGRES_PASSWORD: chatapp_dev_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - chatapp_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatapp -d chatapp"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  api:
+    build:
+      context: .
+      dockerfile: ChatApp.API/Dockerfile
+      target: dev
+    container_name: chatapp-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=chatapp;Username=chatapp;Password=chatapp_dev_password
+      Jwt__Issuer: ChatApp.Dev
+      Jwt__Audience: ChatApp.Dev
+      Jwt__SigningKey: development-signing-key-for-chatapp-jwt-please-change
+      Jwt__AccessTokenMinutes: 240
+      DOTNET_USE_POLLING_FILE_WATCHER: 1
+      DOTNET_WATCH_RESTART_ON_RUDE_EDIT: 1
+      Uploads__RootPath: /src/ChatApp.API/wwwroot/uploads
+      Uploads__PublicPath: /uploads
+      Uploads__MaxFileSizeBytes: 52428800
+      SeedAdmin__Email: admin@chat.local
+      SeedAdmin__Password: Admin@123456
+      SeedAdmin__DisplayName: Admin
+    ports:
+      - "5185:8080"
+    volumes:
+      - ./ChatApp.API:/src/ChatApp.API
+      - chatapp_api_bin:/src/ChatApp.API/bin
+      - chatapp_api_obj:/src/ChatApp.API/obj
+      - chatapp_api_uploads:/src/ChatApp.API/wwwroot/uploads
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ChatApp.UI/Dockerfile
+    container_name: chatapp-frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      VITE_API_BASE_URL: http://localhost:5185
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      VITE_FORCE_POLLING: "true"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./ChatApp.UI:/app
+      - chatapp_ui_node_modules:/app/node_modules
+
+volumes:
+  chatapp_postgres_data:
+  chatapp_api_uploads:
+  chatapp_api_bin:
+  chatapp_api_obj:
+  chatapp_ui_node_modules:
