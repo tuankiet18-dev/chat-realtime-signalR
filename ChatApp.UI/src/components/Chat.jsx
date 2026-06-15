@@ -90,6 +90,7 @@ export default function Chat() {
       const newConnection = new signalR.HubConnectionBuilder()
         .withUrl(`${getApiUrl()}/hubs/chat`, {
           accessTokenFactory: () => token,
+          withCredentials = false,
         })
         .withAutomaticReconnect()
         .build();
