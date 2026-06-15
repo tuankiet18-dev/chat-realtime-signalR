@@ -25,6 +25,7 @@ lerna-debug.log*
 .env
 .env.*
 !.env.example
+*.pem
 appsettings.Local.json
 appsettings.*.Local.json
 
@@ -49,6 +50,13 @@ coverage/
 docker-compose.override.yml
 wwwroot/uploads/
 **/wwwroot/uploads/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
 
 # Playwright / test artifacts
 playwright-report/

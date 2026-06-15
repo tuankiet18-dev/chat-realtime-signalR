@@ -79,9 +79,33 @@
   .spinner {
     animation: spin 1s linear infinite;
   }
+
+  .typing-dot {
+    @apply h-2 w-2 rounded-full bg-slate-400;
+    animation: typing-bounce 1s infinite ease-in-out;
+  }
+
+  .typing-dot-delay-1 {
+    animation-delay: 0.15s;
+  }
+
+  .typing-dot-delay-2 {
+    animation-delay: 0.3s;
+  }
   
   @keyframes spin {
     100% { transform: rotate(360deg); }
+  }
+
+  @keyframes typing-bounce {
+    0%, 80%, 100% {
+      transform: translateY(0);
+      opacity: 0.45;
+    }
+    40% {
+      transform: translateY(-4px);
+      opacity: 1;
+    }
   }
 }
 

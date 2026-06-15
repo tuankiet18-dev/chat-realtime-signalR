@@ -46,6 +46,7 @@ export default function Chat() {
   const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
   const [fullscreenImage, setFullscreenImage] = useState(null);
 
   const normalizeMessage = useCallback((message) => {
@@ -136,6 +137,9 @@ export default function Chat() {
     connect();
     return () => {
       disposed = true;
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
       if (activeConnection) activeConnection.stop();
     };
   }, [user.id, normalizeMessage, upsertMessage]);
@@ -162,6 +166,9 @@ export default function Chat() {
       });
       setComposerText('');
       clearAttachment();
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
       await connection.invoke('Typing', false);
     } catch (err) {
       setError(err.message);
@@ -172,7 +179,15 @@ export default function Chat() {
 
   const handleTyping = (e) => {
     setComposerText(e.target.value);
-    if (connection) connection.invoke('Typing', true).catch(() => {});
+    if (!connection) return;
+
+    connection.invoke('Typing', true).catch(() => {});
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    typingTimeoutRef.current = setTimeout(() => {
+      connection.invoke('Typing', false).catch(() => {});
+    }, 1200);
   };
 
   const handleFileUpload = async (e) => {
@@ -328,7 +343,7 @@ export default function Chat() {
                     {connectionReady ? 'Connected' : 'Connecting'}
                   </span>
                   <span>{memberCount} online</span>
-                  {typingNames && <span className="text-accent">{typingNames} dang go...</span>}
+                  {typingNames && <span className="text-accent">{typingNames} dang nhap...</span>}
                 </div>
               </div>
             </div>
@@ -431,6 +446,7 @@ export default function Chat() {
                   </article>
                 );
               })}
+              {typingNames && <TypingIndicator names={typingNames} />}
               <div ref={messagesEndRef} />
             </div>
           )}
@@ -538,6 +554,24 @@ export default function Chat() {
         </div>
       )}
     </main>
+  );
+}
+
+function TypingIndicator({ names }) {
+  return (
+    <div className="mb-3 flex max-w-[88%] items-end gap-2 self-start md:max-w-[68%]">
+      <div className="grid h-9 w-9 flex-none place-items-center rounded-full bg-white text-xs font-black text-accent shadow-sm">
+        ...
+      </div>
+      <div>
+        <span className="mb-1 ml-1 block text-xs font-black text-secondary">{names}</span>
+        <div className="inline-flex items-center gap-1 rounded-2xl border border-line bg-white px-4 py-3 shadow-sm shadow-slate-200/70">
+          <span className="typing-dot" />
+          <span className="typing-dot typing-dot-delay-1" />
+          <span className="typing-dot typing-dot-delay-2" />
+        </div>
+      </div>
+    </div>
   );
 }
 

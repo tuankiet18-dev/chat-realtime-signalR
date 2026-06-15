@@ -1,0 +1,8 @@
+aws_region    = "ap-southeast-1"
+project_name  = "chatapp-demo"
+instance_type = "t3.micro"
+key_name      = "your-existing-ec2-keypair-name"
+create_key_pair = false
+public_key_path = "your-key.pub"
+ssh_cidr      = "YOUR_PUBLIC_IP/32"
+volume_size_gb = 20
